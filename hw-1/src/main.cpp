@@ -87,7 +87,7 @@ int checkIdGroup(std::string line) {
         try {
             res = std::stoi(id_str);
         } catch (std::exception &e) {
-            throw lineError("in checkIdGroup can`t stoi");
+            throw std::runtime_error("in checkIdGroup can`t stoi");
         }
         return res;
     }
@@ -96,13 +96,37 @@ int checkIdGroup(std::string line) {
 }
 
 std::string getDataGroup(std::string line) {
-    std::string year = getElem(line);
-    eraseToTabs(line, 1);
+    std::string year;
+    try {
+        year = getElem(line);
+    } catch (lineError &e) {
+        throw lineError("in getDataGroup " + e.getStr());
+    }
 
-    std::string month = getElem(line);
-    eraseToTabs(line, 1);
+    try {
+        eraseToTabs(line, 1);
+    } catch (lineError &e) {
+        throw lineError("in getDataGroup " + e.getStr());
+    }
+
+    std::string month;
+    try {
+        month = getElem(line);
+    } catch (lineError &e) {
+    }
+
+    try {
+        eraseToTabs(line, 1);
+    } catch (lineError &e) {
+        throw lineError("in getDataGroup " + e.getStr());
+    }
 
     std::string day = getElem(line);
+    try {
+        day = getElem(line);
+    } catch (lineError &e) {
+        throw lineError("in getDataGroup " + e.getStr());
+    }
 
     std::string res;
     if (year == "\\N") {
@@ -127,26 +151,60 @@ std::string getDataGroup(std::string line) {
 }
 
 std::string checkDateGroup(std::string line, std::string query, int id_group) {
-    eraseToTabs(line, 2);
-    std::string name = getElem(line);
+    try {
+        eraseToTabs(line, 2);
+    } catch (lineError &e) {
+        throw lineError("in checkDateGroup " + e.getStr());
+    }
+
+    std::string name;
+    try {
+        name = getElem(line);
+    } catch (lineError &e) {
+        throw lineError("in checkDateGroup " + e.getStr());
+    }
+
     if (name != query) {
-        // мб заменить на возвращение пустой и выкидывание эксепшена (does not
-        // satisfy the query)
         return "";
     }
 
-    eraseToTabs(line, 2);
-    std::string data = getDataGroup(line);
+    try {
+        eraseToTabs(line, 2);
+    } catch (lineError &e) {
+        throw lineError("in checkDateGroup " + e.getStr());
+    }
 
-    eraseToTabs(line, 6);
-    // TODO check exceptions
-    int type = std::stoi(getElem(line));
+    std::string data;
+    try {
+        data = getDataGroup(line);
+    } catch (lineError &e) {
+        throw lineError("in checkDateGroup " + e.getStr());
+    }
+
+    try {
+        eraseToTabs(line, 6);
+    } catch (lineError &e) {
+        throw lineError("in checkDateGroup " + e.getStr());
+    }
+
+    std::string type_str;
+    try {
+        type_str = getElem(line);
+    } catch (lineError &e) {
+        throw lineError("in checkDateGroup " + e.getStr());
+    }
+
+    int type;
+    try {
+        type = std::stoi(type_str);
+    } catch (std::exception &e) {
+        throw std::runtime_error("in checkDateGroup can`t stoi");
+    }
 
     if (type == id_group) {
         return data;
     }
 
-    // мб заменить на возвращение пустой и выкидывание эксепшена "is not group"
     return "";
 }
 
@@ -155,7 +213,16 @@ int run(reqArguments &req_arg, std::ostream &output) {
     std::string line;
     int id_group;
     while (in_type.is_open() && getline(in_type, line)) {
-        id_group = checkIdGroup(line);
+        try {
+            id_group = checkIdGroup(line);
+        } catch (lineError &e) {
+            in_type.close();
+            throw lineError("in run " + e.getStr());
+        } catch (std::exception &e) {
+            in_type.close();
+            throw;
+        }
+
         if (id_group != -1) {
             break;
         }
@@ -163,29 +230,40 @@ int run(reqArguments &req_arg, std::ostream &output) {
     in_type.close();
 
     if (id_group == -1) {
-        // мб throw
         return -1;
     }
 
     std::ifstream in_artist(req_arg.path_artist);
     std::string data_group;
     while (in_artist.is_open() && getline(in_artist, line)) {
-        data_group = checkDateGroup(line, req_arg.query, id_group);
+        try {
+            data_group = checkDateGroup(line, req_arg.query, id_group);
+        } catch (lineError &e) {
+            in_artist.close();
+            throw lineError("in checkDateGroup " + e.getStr());
+        } catch (std::exception &e) {
+            in_artist.close();
+            throw;
+        }
+
         if (data_group != "") {
             break;
         }
     }
-    output << data_group;
+
     in_artist.close();
+    if (data_group != "") {
+        output << data_group;
+    } else {
+        output << "Not found";
+    }
+
     return 0;
 };
 
 int main(int argc, char *argv[]) {
-    std::cout << " argc = " << argc << std::endl;
-
     if (argc == 2) {
         std::string flag1 = argv[1];
-        std::cout << argv[1] << std::endl;
 
         if (flag1 == "--help" || flag1 == "-h") {
             std::cout << MESSAGE_HELP;
@@ -197,9 +275,6 @@ int main(int argc, char *argv[]) {
         std::string flag1 = argv[1];
         std::string flag2 = argv[3];
         std::string flag3 = argv[5];
-        std::cout << flag1 << std::endl;
-        std::cout << flag2 << std::endl;
-        std::cout << flag3 << std::endl;
 
         if ((flag1 == "--path_artist" || flag1 == "-a") &&
             (flag2 == "--path_type" || flag2 == "-t") &&
