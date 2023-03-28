@@ -3,31 +3,11 @@
 #include <stdexcept>
 #include <string>
 
-// #include "utils.hpp"
-
-#define MESSAGE_BAD_ARGUMENTS                                                  \
-    "Bad request. Write --help or -h to see how utility work"
-
-#define MESSAGE_HELP                                                           \
-    "Command should be used in format: \
-hw1 --path_artist|-a [your path to artist file] --path_type|-t [your path to artist_type] \
---query|-q [your query for searh] right only in this order"
-
-class lineError : std::runtime_error {
-    using std::runtime_error::runtime_error;
-
-  public:
-    std::string getStr() { return this->what(); }
-};
-
-// request arguments
-struct reqArguments {
-    std::string path_artist;
-    std::string path_type;
-    std::string query;
-};
+#include "errors.hpp"
+#include "messages.hpp"
 
 // getElem returns one element (all before first tab)
+// Can throw an exception lineError, std::runtime_error
 std::string getElem(std::string line) {
     size_t tabIdx = line.find("\t", 0);
     if (tabIdx == std::string::npos) {
@@ -45,6 +25,7 @@ std::string getElem(std::string line) {
 }
 
 // eraseToTabs erase count elements with tab in line.
+// Can throw an exception lineError
 void eraseToTabs(std::string &line, int count) {
     for (int i = 0; i < count; i++) {
         size_t tabIdx = line.find("\t", 0);
@@ -61,6 +42,8 @@ void eraseToTabs(std::string &line, int count) {
     }
 }
 
+// checkIdGroup checks id of group in line
+// Can throw an exception lineError, std::runtime_error
 int checkIdGroup(std::string line) {
     std::string id_str;
     try {
@@ -95,18 +78,20 @@ int checkIdGroup(std::string line) {
     return -1;
 }
 
-std::string getDataGroup(std::string line) {
+// getDateGrop gets date of group from line
+// Can throw an exception lineError
+std::string getDateGroup(std::string line) {
     std::string year;
     try {
         year = getElem(line);
     } catch (lineError &e) {
-        throw lineError("in getDataGroup " + e.getStr());
+        throw lineError("in getDateGroup " + e.getStr());
     }
 
     try {
         eraseToTabs(line, 1);
     } catch (lineError &e) {
-        throw lineError("in getDataGroup " + e.getStr());
+        throw lineError("in getDateGroup " + e.getStr());
     }
 
     std::string month;
@@ -118,14 +103,14 @@ std::string getDataGroup(std::string line) {
     try {
         eraseToTabs(line, 1);
     } catch (lineError &e) {
-        throw lineError("in getDataGroup " + e.getStr());
+        throw lineError("in getDateGroup " + e.getStr());
     }
 
     std::string day = getElem(line);
     try {
         day = getElem(line);
     } catch (lineError &e) {
-        throw lineError("in getDataGroup " + e.getStr());
+        throw lineError("in getDateGroup " + e.getStr());
     }
 
     std::string res;
@@ -150,6 +135,8 @@ std::string getDataGroup(std::string line) {
     return res;
 }
 
+// checkDateGroup checks exist of group
+// Can throw an exception lineError, std::runtime_error
 std::string checkDateGroup(std::string line, std::string query, int id_group) {
     try {
         eraseToTabs(line, 2);
@@ -176,7 +163,7 @@ std::string checkDateGroup(std::string line, std::string query, int id_group) {
 
     std::string data;
     try {
-        data = getDataGroup(line);
+        data = getDateGroup(line);
     } catch (lineError &e) {
         throw lineError("in checkDateGroup " + e.getStr());
     }
@@ -208,6 +195,14 @@ std::string checkDateGroup(std::string line, std::string query, int id_group) {
     return "";
 }
 
+// request arguments
+struct reqArguments {
+    std::string path_artist;
+    std::string path_type;
+    std::string query;
+};
+
+// Can throw an exception lineError, std::runtime_error
 int run(reqArguments &req_arg, std::ostream &output) {
     std::ifstream in_type(req_arg.path_type);
     std::string line;
@@ -266,7 +261,7 @@ int main(int argc, char *argv[]) {
         std::string flag1 = argv[1];
 
         if (flag1 == "--help" || flag1 == "-h") {
-            std::cout << MESSAGE_HELP;
+            std::cout << mes_help;
             return 0;
         }
     }
@@ -288,6 +283,6 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    std::cerr << MESSAGE_BAD_ARGUMENTS;
+    std::cerr << mes_bad_argument;
     return 1;
 }
