@@ -1,1 +1,5 @@
 mbdump
+data
+.vscode
+build*
+.clang-format
