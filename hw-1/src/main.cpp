@@ -5,6 +5,7 @@
 
 #include "errors.hpp"
 #include "messages.hpp"
+#include "safe_ifstream.hpp"
 
 // getElem returns one element (all before first tab)
 // Can throw an exception lineError
@@ -44,173 +45,91 @@ void eraseToTabs(std::string &line, int count) {
 }
 
 // checkIdGroup checks id of group in line
-// Can throw an exception lineError, std::runtime_error
+// Can throw an exception lineError
 int checkIdGroup(std::string line) {
-    std::string id_str;
     try {
-        id_str = getElem(line);
-    } catch (lineError &e) {
-        throw lineError("in checkIdGroup: " +
-                        static_cast<std::string>(e.what()));
-    }
-
-    try {
+        std::string id_str = getElem(line);
         eraseToTabs(line, 1);
-    } catch (lineError &e) {
-        throw lineError("in checkIdGroup: " +
-                        static_cast<std::string>(e.what()));
-    }
 
-    std::string type;
-    try {
-        type = getElem(line);
-    } catch (lineError &e) {
-        throw lineError("in checkIdGroup: " +
-                        static_cast<std::string>(e.what()));
-    }
+        std::string type = getElem(line);
 
-    if (type == "Group") {
-        int res;
-        try {
-            res = std::stoi(id_str);
-        } catch (std::exception &e) {
-            throw std::runtime_error("in checkIdGroup: can`t stoi because " +
-                                     static_cast<std::string>(e.what()));
+        if (type == "Group") {
+            int res = std::stoi(id_str);
+            return res;
         }
-        return res;
-    }
 
-    return -1;
+        return -1;
+    } catch (std::exception &e) {
+        throw lineError("in checkIdGroup: " +
+                        static_cast<std::string>(e.what()));
+    }
 }
 
 // getDateGrop gets date of group from line
 // Can throw an exception lineError
 std::string getDateGroup(std::string line) {
-    std::string year;
     try {
-        year = getElem(line);
-    } catch (lineError &e) {
-        throw lineError("in getDateGroup: " +
-                        static_cast<std::string>(e.what()));
-    }
-
-    try {
+        std::string year = getElem(line);
         eraseToTabs(line, 1);
-    } catch (lineError &e) {
-        throw lineError("in getDateGroup: " +
-                        static_cast<std::string>(e.what()));
-    }
 
-    std::string month;
-    try {
-        month = getElem(line);
-    } catch (lineError &e) {
-        throw lineError("in getDateGroup: " +
-                        static_cast<std::string>(e.what()));
-    }
-
-    try {
+        std::string month = getElem(line);
         eraseToTabs(line, 1);
+
+        std::string day = getElem(line);
+
+        std::string res;
+        if (year == "\\N") {
+            res = "_:";
+        } else {
+            res = year + ":";
+        }
+
+        if (month == "\\N") {
+            res += "_:";
+        } else {
+            res = month + ":";
+        }
+
+        if (day == "\\N") {
+            res += "_";
+        } else {
+            res = day;
+        }
+        // throw "afd";
+
+        return res;
     } catch (lineError &e) {
         throw lineError("in getDateGroup: " +
                         static_cast<std::string>(e.what()));
     }
-
-    std::string day = getElem(line);
-    try {
-        day = getElem(line);
-    } catch (lineError &e) {
-        throw lineError("in getDateGroup: " +
-                        static_cast<std::string>(e.what()));
-    }
-
-    std::string res;
-    if (year == "\\N") {
-        res = "_:";
-    } else {
-        res = year + ":";
-    }
-
-    if (month == "\\N") {
-        res += "_:";
-    } else {
-        res = month + ":";
-    }
-
-    if (day == "\\N") {
-        res += "_";
-    } else {
-        res = day;
-    }
-
-    return res;
 }
 
 // checkDateGroup checks exist of group
-// Can throw an exception lineError, std::runtime_error
+// Can throw an exception lineError
 std::string checkDateGroup(std::string line, std::string query, int id_group) {
     try {
         eraseToTabs(line, 2);
-    } catch (lineError &e) {
-        throw lineError("in checkDateGroup: " +
-                        static_cast<std::string>(e.what()));
-    }
+        std::string name = getElem(line);
+        if (name != query) {
+            return "";
+        }
 
-    std::string name;
-    try {
-        name = getElem(line);
-    } catch (lineError &e) {
-        throw lineError("in checkDateGroup: " +
-                        static_cast<std::string>(e.what()));
-    }
-
-    if (name != query) {
-        return "";
-    }
-
-    try {
         eraseToTabs(line, 2);
-    } catch (lineError &e) {
-        throw lineError("in checkDateGroup: " +
-                        static_cast<std::string>(e.what()));
-    }
 
-    std::string data;
-    try {
-        data = getDateGroup(line);
-    } catch (lineError &e) {
-        throw lineError("in checkDateGroup: " +
-                        static_cast<std::string>(e.what()));
-    }
-
-    try {
+        std::string data = getDateGroup(line);
         eraseToTabs(line, 6);
-    } catch (lineError &e) {
-        throw lineError("in checkDateGroup: " +
-                        static_cast<std::string>(e.what()));
-    }
 
-    std::string type_str;
-    try {
-        type_str = getElem(line);
-    } catch (lineError &e) {
-        throw lineError("in checkDateGroup: " +
-                        static_cast<std::string>(e.what()));
-    }
+        std::string type_str = getElem(line);
+        int type = std::stoi(type_str);
+        if (type == id_group) {
+            return data;
+        }
 
-    int type;
-    try {
-        type = std::stoi(type_str);
+        return "";
     } catch (std::exception &e) {
-        throw std::runtime_error("in checkDateGroup: can`t stoi because " +
-                                 static_cast<std::string>(e.what()));
+        throw lineError("in checkDateGroup: " +
+                        static_cast<std::string>(e.what()));
     }
-
-    if (type == id_group) {
-        return data;
-    }
-
-    return "";
 }
 
 // request arguments
@@ -220,61 +139,48 @@ struct reqArguments {
     std::string query;
 };
 
-// Can throw an exception lineError, std::runtime_error
+// Can throw an exception lineError
 int run(reqArguments &req_arg, std::ostream &output) {
-    std::ifstream in_type(req_arg.path_type);
-    std::string line;
-    int id_group;
-    while (in_type.is_open() && getline(in_type, line)) {
-        try {
+    try {
+        safeIfstream in_type_safe(req_arg.path_type);
+        std::ifstream &in_type = in_type_safe.get();
+
+        std::string line;
+        int id_group = -1;
+        while (in_type.is_open() && getline(in_type, line) && id_group == -1) {
             id_group = checkIdGroup(line);
-        } catch (lineError &e) {
-            in_type.close();
-            throw lineError("in run: " + static_cast<std::string>(e.what()));
-        } catch (std::exception &e) {
-            in_type.close();
-            throw std::runtime_error("in run: " +
-                                     static_cast<std::string>(e.what()));
+        }
+        in_type.close();
+
+        if (id_group == -1) {
+            return -1;
         }
 
-        if (id_group != -1) {
-            break;
-        }
-    }
-    in_type.close();
+        safeIfstream in_artist_safe(req_arg.path_artist);
+        std::ifstream &in_artist = in_artist_safe.get();
 
-    if (id_group == -1) {
-        return -1;
-    }
-
-    std::ifstream in_artist(req_arg.path_artist);
-    std::string data_group;
-    while (in_artist.is_open() && getline(in_artist, line)) {
-        try {
+        std::string data_group = "";
+        while (in_artist.is_open() && getline(in_artist, line) &&
+               data_group == "") {
             data_group = checkDateGroup(line, req_arg.query, id_group);
-        } catch (lineError &e) {
-            in_artist.close();
-            throw lineError("in run: " + static_cast<std::string>(e.what()));
-        } catch (std::exception &e) {
-            in_artist.close();
-            throw std::runtime_error("in run: " +
-                                     static_cast<std::string>(e.what()));
         }
 
+        in_artist.close();
         if (data_group != "") {
-            break;
+            output << data_group;
+        } else {
+            output << "Not found";
         }
-    }
 
-    in_artist.close();
-    if (data_group != "") {
-        output << data_group;
-    } else {
-        output << "Not found";
+        return 0;
+    } catch (lineError &e) {
+        throw lineError("in run lineError: " +
+                        static_cast<std::string>(e.what()));
+    } catch (std::exception &e) {
+        throw std::runtime_error("in run: " +
+                                 static_cast<std::string>(e.what()));
     }
-
-    return 0;
-};
+}
 
 int main(int argc, char *argv[]) {
     if (argc == 2) {
