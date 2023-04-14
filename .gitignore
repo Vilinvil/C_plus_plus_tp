@@ -3,3 +3,4 @@ data
 .vscode
 build*
 .clang-format
+main
