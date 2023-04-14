@@ -1,0 +1,2 @@
+add_library(safe_ifstream src/safe_ifstream.cpp)
+target_include_directories(safe_ifstream PUBLIC include)
