@@ -3,6 +3,6 @@
 #include <stdexcept>
 #include <string>
 
-class lineError : public std::runtime_error {
+class LineError : public std::runtime_error {
     using std::runtime_error::runtime_error;
 };

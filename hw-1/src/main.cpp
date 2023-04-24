@@ -8,18 +8,18 @@
 #include "safe_ifstream.hpp"
 
 // getElem returns one element (all before first tab)
-// Can throw an exception lineError
+// Can throw an exception LineError
 std::string getElem(std::string line) {
     size_t tabIdx = line.find("\t", 0);
     if (tabIdx == std::string::npos) {
-        throw lineError("in getElem: can`t find \\t");
+        throw LineError("in getElem: can`t find \\t");
     }
 
     std::string res;
     try {
         res = line.substr(0, tabIdx);
     } catch (std::out_of_range &e) {
-        throw lineError("in getElem: can`t line.substr() because " +
+        throw LineError("in getElem: can`t line.substr() because " +
                         static_cast<std::string>(e.what()));
     }
 
@@ -27,25 +27,25 @@ std::string getElem(std::string line) {
 }
 
 // eraseToTabs erase count elements with tab in line.
-// Can throw an exception lineError
+// Can throw an exception LineError
 void eraseToTabs(std::string &line, int count) {
     for (int i = 0; i < count; i++) {
         size_t tabIdx = line.find("\t", 0);
         if (tabIdx == std::string::npos) {
-            throw lineError("in eraseToTabs: can`t find \\t");
+            throw LineError("in eraseToTabs: can`t find \\t");
         }
 
         try {
             line.erase(0, tabIdx + 1);
         } catch (std::out_of_range &e) {
-            throw lineError("in eraseToTabs: can`t erase because " +
+            throw LineError("in eraseToTabs: can`t erase because " +
                             static_cast<std::string>(e.what()));
         }
     }
 }
 
 // checkIdGroup checks id of group in line
-// Can throw an exception lineError
+// Can throw an exception LineError
 int checkIdGroup(std::string line) {
     try {
         std::string id_str = getElem(line);
@@ -60,13 +60,13 @@ int checkIdGroup(std::string line) {
 
         return -1;
     } catch (std::exception &e) {
-        throw lineError("in checkIdGroup: " +
+        throw LineError("in checkIdGroup: " +
                         static_cast<std::string>(e.what()));
     }
 }
 
 // getDateGrop gets date of group from line
-// Can throw an exception lineError
+// Can throw an exception LineError
 std::string getDateGroup(std::string line) {
     try {
         std::string year = getElem(line);
@@ -95,17 +95,16 @@ std::string getDateGroup(std::string line) {
         } else {
             res = day;
         }
-        // throw "afd";
 
         return res;
-    } catch (lineError &e) {
-        throw lineError("in getDateGroup: " +
+    } catch (LineError &e) {
+        throw LineError("in getDateGroup: " +
                         static_cast<std::string>(e.what()));
     }
 }
 
 // checkDateGroup checks exist of group
-// Can throw an exception lineError
+// Can throw an exception LineError
 std::string checkDateGroup(std::string line, std::string query, int id_group) {
     try {
         eraseToTabs(line, 2);
@@ -127,7 +126,7 @@ std::string checkDateGroup(std::string line, std::string query, int id_group) {
 
         return "";
     } catch (std::exception &e) {
-        throw lineError("in checkDateGroup: " +
+        throw LineError("in checkDateGroup: " +
                         static_cast<std::string>(e.what()));
     }
 }
@@ -139,7 +138,7 @@ struct reqArguments {
     std::string query;
 };
 
-// Can throw an exception lineError
+// Can throw an exception LineError
 int run(reqArguments &req_arg, std::ostream &output) {
     try {
         safeIfstream in_type_safe(req_arg.path_type);
@@ -159,7 +158,7 @@ int run(reqArguments &req_arg, std::ostream &output) {
         safeIfstream in_artist_safe(req_arg.path_artist);
         std::ifstream &in_artist = in_artist_safe.get();
 
-        std::string data_group = "";
+        std::string data_group;
         while (in_artist.is_open() && getline(in_artist, line) &&
                data_group == "") {
             data_group = checkDateGroup(line, req_arg.query, id_group);
@@ -173,8 +172,8 @@ int run(reqArguments &req_arg, std::ostream &output) {
         }
 
         return 0;
-    } catch (lineError &e) {
-        throw lineError("in run lineError: " +
+    } catch (LineError &e) {
+        throw LineError("in run LineError: " +
                         static_cast<std::string>(e.what()));
     } catch (std::exception &e) {
         throw std::runtime_error("in run: " +
@@ -196,7 +195,6 @@ int main(int argc, char *argv[]) {
         std::string flag1 = argv[1];
         std::string flag2 = argv[3];
         std::string flag3 = argv[5];
-
         if ((flag1 == "--path_artist" || flag1 == "-a") &&
             (flag2 == "--path_type" || flag2 == "-t") &&
             (flag3 == "--query" || flag3 == "-q")) {
