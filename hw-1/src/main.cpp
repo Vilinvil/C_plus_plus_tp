@@ -45,19 +45,25 @@ void eraseToTabs(std::string &line, int count) {
 
 // getIdGroup checks id of group in line
 // Can throw an exception LineError
-int getIdGroup(std::string &line) {
+int getIdGroup(const std::string &path_type) {
     try {
-        std::string id_str = getElem(line);
-        eraseToTabs(line, 1);
+        std::ifstream in_type(path_type);
 
-        std::string type = getElem(line);
+        std::string line;
+        int id_group = -1;
+        while (in_type.is_open() && getline(in_type, line) && id_group == -1) {
+            std::string id_str = getElem(line);
+            eraseToTabs(line, 1);
 
-        if (type == "Group") {
-            int res = std::stoi(id_str);
-            return res;
+            std::string type = getElem(line);
+
+            if (type == "Group") {
+                int res = std::stoi(id_str);
+                return res;
+            }
         }
 
-        return -1;
+        throw LineError("Not found id_group");
     } catch (std::exception &e) {
         throw LineError("in getIdGroup: " + static_cast<std::string>(e.what()));
     }
@@ -65,7 +71,7 @@ int getIdGroup(std::string &line) {
 
 // getDateGrop gets date of group from line
 // Can throw an exception LineError
-std::string getDateGroup(std::string &line) {
+std::string getDateFromLine(std::string &line) {
     try {
         std::string year = getElem(line);
         eraseToTabs(line, 1);
@@ -103,27 +109,33 @@ std::string getDateGroup(std::string &line) {
 
 // getDateGroup checks exist of group
 // Can throw an exception LineError
-std::string getDateGroup(std::string line, const std::string &query,
-                         int id_group) {
+std::string getDateGroup(const std::string &path_artist,
+                         const std::string &query, int id_group) {
     try {
-        eraseToTabs(line, 2);
-        std::string name = getElem(line);
-        if (name != query) {
-            return "";
+        std::ifstream in_artist(path_artist);
+
+        std::string data_group, line;
+        while (in_artist.is_open() && getline(in_artist, line) &&
+               data_group == "") {
+            eraseToTabs(line, 2);
+            std::string name = getElem(line);
+            if (name != query) {
+                continue;
+            }
+
+            eraseToTabs(line, 2);
+
+            std::string data = getDateFromLine(line);
+            eraseToTabs(line, 4);
+
+            std::string type_str = getElem(line);
+            int type = std::stoi(type_str);
+            if (type == id_group) {
+                return data;
+            }
         }
 
-        eraseToTabs(line, 2);
-
-        std::string data = getDateGroup(line);
-        eraseToTabs(line, 4);
-
-        std::string type_str = getElem(line);
-        int type = std::stoi(type_str);
-        if (type == id_group) {
-            return data;
-        }
-
-        return "";
+        throw LineError("Not found date of group");
     } catch (std::exception &e) {
         throw LineError("in getDateGroup: " +
                         static_cast<std::string>(e.what()));
@@ -138,37 +150,13 @@ struct reqArguments {
 };
 
 // Can throw an exception LineError
-int run(const reqArguments &req_arg, std::ostream &output) {
+void run(const reqArguments &req_arg, std::ostream &output) {
     try {
-        std::ifstream in_type(req_arg.path_type);
+        int id_group = getIdGroup(req_arg.path_type);
 
-        std::string line;
-        int id_group = -1;
-        while (in_type.is_open() && getline(in_type, line) && id_group == -1) {
-            id_group = getIdGroup(line);
-        }
-        in_type.close();
-
-        if (id_group == -1) {
-            return -1;
-        }
-
-        std::ifstream in_artist(req_arg.path_artist);
-
-        std::string data_group;
-        while (in_artist.is_open() && getline(in_artist, line) &&
-               data_group == "") {
-            data_group = getDateGroup(line, req_arg.query, id_group);
-        }
-        in_artist.close();
-
-        if (data_group != "") {
-            output << data_group;
-        } else {
-            output << "Not found";
-        }
-
-        return 0;
+        std::string data_group =
+            getDateGroup(req_arg.path_artist, req_arg.query, id_group);
+        output << data_group;
     } catch (LineError &e) {
         throw LineError("in run LineError: " +
                         static_cast<std::string>(e.what()));
@@ -202,14 +190,14 @@ int main(int argc, char *argv[]) {
 
             int res;
             try {
-                res = run(req_arg, std::cout);
+                run(req_arg, std::cout);
             } catch (std::exception &e) {
-                std::cerr << "in main: " << e.what();
+                throw std::runtime_error("in main: " +
+                                         static_cast<std::string>(e.what()));
             }
-            return res;
+            return 0;
         }
     }
 
-    std::cerr << mes_bad_argument;
-    return 1;
+    throw std::runtime_error(mes_bad_argument);
 }
