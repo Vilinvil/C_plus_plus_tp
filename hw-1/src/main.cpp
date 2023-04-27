@@ -9,7 +9,7 @@
 
 // getElem returns one element (all before first tab)
 // Can throw an exception LineError
-std::string getElem(std::string line) {
+std::string getElem(const std::string &line) {
     size_t tabIdx = line.find("\t", 0);
     if (tabIdx == std::string::npos) {
         throw LineError("in getElem: can`t find \\t");
@@ -44,9 +44,9 @@ void eraseToTabs(std::string &line, int count) {
     }
 }
 
-// checkIdGroup checks id of group in line
+// getIdGroup checks id of group in line
 // Can throw an exception LineError
-int checkIdGroup(std::string line) {
+int getIdGroup(std::string &line) {
     try {
         std::string id_str = getElem(line);
         eraseToTabs(line, 1);
@@ -60,14 +60,13 @@ int checkIdGroup(std::string line) {
 
         return -1;
     } catch (std::exception &e) {
-        throw LineError("in checkIdGroup: " +
-                        static_cast<std::string>(e.what()));
+        throw LineError("in getIdGroup: " + static_cast<std::string>(e.what()));
     }
 }
 
 // getDateGrop gets date of group from line
 // Can throw an exception LineError
-std::string getDateGroup(std::string line) {
+std::string getDateGroup(std::string &line) {
     try {
         std::string year = getElem(line);
         eraseToTabs(line, 1);
@@ -103,9 +102,10 @@ std::string getDateGroup(std::string line) {
     }
 }
 
-// checkDateGroup checks exist of group
+// getDateGroup checks exist of group
 // Can throw an exception LineError
-std::string checkDateGroup(std::string line, std::string query, int id_group) {
+std::string getDateGroup(std::string line, const std::string &query,
+                         int id_group) {
     try {
         eraseToTabs(line, 2);
         std::string name = getElem(line);
@@ -116,7 +116,7 @@ std::string checkDateGroup(std::string line, std::string query, int id_group) {
         eraseToTabs(line, 2);
 
         std::string data = getDateGroup(line);
-        eraseToTabs(line, 6);
+        eraseToTabs(line, 4);
 
         std::string type_str = getElem(line);
         int type = std::stoi(type_str);
@@ -126,7 +126,7 @@ std::string checkDateGroup(std::string line, std::string query, int id_group) {
 
         return "";
     } catch (std::exception &e) {
-        throw LineError("in checkDateGroup: " +
+        throw LineError("in getDateGroup: " +
                         static_cast<std::string>(e.what()));
     }
 }
@@ -139,7 +139,7 @@ struct reqArguments {
 };
 
 // Can throw an exception LineError
-int run(reqArguments &req_arg, std::ostream &output) {
+int run(const reqArguments &req_arg, std::ostream &output) {
     try {
         safeIfstream in_type_safe(req_arg.path_type);
         std::ifstream &in_type = in_type_safe.get();
@@ -147,7 +147,7 @@ int run(reqArguments &req_arg, std::ostream &output) {
         std::string line;
         int id_group = -1;
         while (in_type.is_open() && getline(in_type, line) && id_group == -1) {
-            id_group = checkIdGroup(line);
+            id_group = getIdGroup(line);
         }
         in_type.close();
 
@@ -161,7 +161,7 @@ int run(reqArguments &req_arg, std::ostream &output) {
         std::string data_group;
         while (in_artist.is_open() && getline(in_artist, line) &&
                data_group == "") {
-            data_group = checkDateGroup(line, req_arg.query, id_group);
+            data_group = getDateGroup(line, req_arg.query, id_group);
         }
 
         in_artist.close();
@@ -182,6 +182,13 @@ int run(reqArguments &req_arg, std::ostream &output) {
 }
 
 int main(int argc, char *argv[]) {
+    std::cout << argv[0];
+    std::cout << argv[1] << std::endl
+              << argv[2] << std::endl
+              << argv[3] << std::endl
+              << argv[4] << std::endl
+              << argv[5] << std::endl
+              << argv[6] << std::endl;
     if (argc == 2) {
         std::string flag1 = argv[1];
 
