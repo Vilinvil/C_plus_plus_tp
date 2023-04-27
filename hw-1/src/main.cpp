@@ -5,7 +5,6 @@
 
 #include "errors.hpp"
 #include "messages.hpp"
-#include "safe_ifstream.hpp"
 
 // getElem returns one element (all before first tab)
 // Can throw an exception LineError
@@ -141,8 +140,7 @@ struct reqArguments {
 // Can throw an exception LineError
 int run(const reqArguments &req_arg, std::ostream &output) {
     try {
-        safeIfstream in_type_safe(req_arg.path_type);
-        std::ifstream &in_type = in_type_safe.get();
+        std::ifstream in_type(req_arg.path_type);
 
         std::string line;
         int id_group = -1;
@@ -155,16 +153,15 @@ int run(const reqArguments &req_arg, std::ostream &output) {
             return -1;
         }
 
-        safeIfstream in_artist_safe(req_arg.path_artist);
-        std::ifstream &in_artist = in_artist_safe.get();
+        std::ifstream in_artist(req_arg.path_artist);
 
         std::string data_group;
         while (in_artist.is_open() && getline(in_artist, line) &&
                data_group == "") {
             data_group = getDateGroup(line, req_arg.query, id_group);
         }
-
         in_artist.close();
+
         if (data_group != "") {
             output << data_group;
         } else {
@@ -182,13 +179,6 @@ int run(const reqArguments &req_arg, std::ostream &output) {
 }
 
 int main(int argc, char *argv[]) {
-    std::cout << argv[0];
-    std::cout << argv[1] << std::endl
-              << argv[2] << std::endl
-              << argv[3] << std::endl
-              << argv[4] << std::endl
-              << argv[5] << std::endl
-              << argv[6] << std::endl;
     if (argc == 2) {
         std::string flag1 = argv[1];
 
