@@ -1,0 +1,130 @@
+#pragma once
+
+#include <fstream>
+#include <memory>
+#include <stdexcept>
+#include <string>
+
+class CounterBite {
+  public:
+    CounterBite() : totalBite_(0){};
+
+    void AddCounter(const std::string &str) { totalBite_ += str.size(); };
+
+    size_t totalBite_;
+};
+
+class IOperation;
+
+using IOperationUP = std::unique_ptr<IOperation>;
+
+class IHandleEndOfInput {
+  public:
+    virtual void HandleEndOfInput() = 0;
+};
+
+class IProcessLine {
+  public:
+    virtual void ProcessLine(const std::string &str) = 0;
+};
+
+class ISetNextOperation {
+  public:
+    virtual void SetNextOperation(IOperation *operation) = 0;
+};
+
+class IOperation : public IHandleEndOfInput,
+                   public ISetNextOperation,
+                   public IProcessLine {};
+
+class OperationWithNext : public ISetNextOperation {
+  public:
+    void SetNextOperation(IOperation *operation) override {
+        next_ = std::unique_ptr<IOperation>(operation);
+    }
+
+  protected:
+    IOperation *GetRefNext() { return next_.get(); };
+
+  private:
+    IOperationUP next_;
+};
+
+class OperationWithArg {
+  protected:
+    OperationWithArg(){};
+    OperationWithArg(const std::string &arg) : arg_(arg){};
+
+    std::string arg_;
+};
+
+class OperationWithOut {
+  public:
+    OperationWithOut(std::ostream &out) : out_(out){};
+
+  protected:
+    std::ostream &out_;
+};
+
+class BaseOperation : public OperationWithNext,
+                      public OperationWithArg,
+                      public OperationWithOut {
+  protected:
+    BaseOperation(const std::string &arg, std::ostream &out)
+        : OperationWithOut(out) {
+        arg_ = arg;
+    };
+};
+
+class EchoOperation : public IOperation, public BaseOperation {
+  public:
+    EchoOperation(const std::string &arg, std::ostream &out)
+        : BaseOperation(arg, out){};
+
+    void HandleEndOfInput() override;
+
+    void SetNextOperation(IOperation *operation) override {
+        OperationWithNext::SetNextOperation(operation);
+    };
+
+    void ProcessLine(const std::string &str) override;
+};
+
+class CatOperation : public IOperation, public BaseOperation {
+  public:
+    CatOperation(const std::string &arg, std::ostream &out)
+        : BaseOperation(arg, out){};
+
+    void HandleEndOfInput() override;
+
+    void SetNextOperation(IOperation *operation) override {
+        OperationWithNext::SetNextOperation(operation);
+    };
+
+    void ProcessLine(const std::string &str) override;
+};
+
+// WCOperation can throw std::runtime_error
+class WCOperation : public IOperation, public BaseOperation {
+  public:
+    WCOperation(const std::string &arg, std::ostream &out)
+        : BaseOperation(arg, out) {
+        if (arg != "-c") {
+            throw std::runtime_error(
+                "in WCOperation constructor: not supported argument with "
+                "command WC. Argument: " +
+                arg);
+        }
+    };
+
+    void HandleEndOfInput() override;
+
+    void SetNextOperation(IOperation *operation) override {
+        OperationWithNext::SetNextOperation(operation);
+    };
+
+    void ProcessLine(const std::string &str) override;
+
+  protected:
+    ::CounterBite counter_;
+};
