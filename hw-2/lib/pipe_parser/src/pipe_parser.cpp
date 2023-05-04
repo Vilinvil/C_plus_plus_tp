@@ -27,7 +27,7 @@ static Command ParseCommand(const std::string &command) {
     if (idxGap == std::string::npos) {
         throw std::runtime_error(
             "in ParseCommand: command have uncorrect format. In command: " +
-            command);
+            command + " For help use ./hw2 --help");
     }
 
     return Command(command.substr(0, idxGap), command.substr(idxGap + 1));
@@ -38,7 +38,8 @@ std::vector<Command> ParsePipe(std::string &pipe) {
     try {
         if (!isHaveQuotes(pipe)) {
             throw std::runtime_error(
-                "in PiplineHandler: pipe haven`t '' in start and end");
+                "in PiplineHandler: pipe haven`t '' in start and end. For "
+                "help use ./hw2 --help");
         }
 
         deleteQuotes(pipe);

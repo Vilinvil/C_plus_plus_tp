@@ -67,7 +67,7 @@ WCOperation::WCOperation(const std::string &arg, std::ostream &out)
         throw std::runtime_error(
             "in WCOperation constructor: not supported argument with "
             "command WC. Argument: " +
-            arg);
+            arg + " For help use ./hw2 --help");
     }
 };
 

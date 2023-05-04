@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 
+#include "messages.hpp"
 #include "operations.hpp"
 #include "pipe_parser.hpp"
 
@@ -24,8 +25,9 @@ void PiplineHandler(std::string &pipe, std::ostream &out) {
             } else if ((*it).operation_ == "wc") {
                 tmp = new WCOperation((*it).arg_, out);
             } else {
-                throw std::runtime_error("Not supported command: " +
-                                         (*it).str());
+                throw std::runtime_error(
+                    " For help use ./hw2 --help. Not supported command: " +
+                    (*it).str());
             }
 
             if (flagFirst) {
@@ -46,8 +48,18 @@ void PiplineHandler(std::string &pipe, std::ostream &out) {
 }
 
 int main(int argc, char *argv[]) {
-    std::cout << argc << " argv " << argv[1] << std::endl;
+    if (argc != 2) {
+        throw std::runtime_error(
+            "utility shoud have 2 arguments. For help use ./hw2 --help");
+    }
+
     std::string pipe = argv[1];
+
+    if (pipe == "--help") {
+        std::cout << mes_help;
+        return 0;
+    }
+
     try {
         PiplineHandler(pipe, std::cout);
     } catch (std::exception &e) {
