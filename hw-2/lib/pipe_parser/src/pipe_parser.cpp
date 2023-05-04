@@ -1,5 +1,9 @@
 #include "pipe_parser.hpp"
 
+std::string Command::str() {
+    return ("Operation: " + operation_ + "arg: " + arg_);
+};
+
 static void deleteQuotes(std::string &str) {
     str.erase(0, 1);
     str.erase(str.length() - 1, 1);

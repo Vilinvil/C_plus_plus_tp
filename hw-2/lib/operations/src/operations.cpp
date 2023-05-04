@@ -1,5 +1,9 @@
 #include "operations.hpp"
 
+void OperationWithNext::SetNextOperation(IOperation *operation) {
+    next_ = std::unique_ptr<IOperation>(operation);
+}
+
 void EchoOperation::ProcessLine(const std::string &str){
     // Because Echo just ignore input lines
 };
@@ -54,6 +58,16 @@ void CatOperation::HandleEndOfInput() {
         throw std::runtime_error(
             "in CatOperation::HandleEndOfInput: exception: " +
             static_cast<std::string>(e.what()));
+    }
+};
+
+WCOperation::WCOperation(const std::string &arg, std::ostream &out)
+    : BaseOperation(arg, out) {
+    if (arg != "-c") {
+        throw std::runtime_error(
+            "in WCOperation constructor: not supported argument with "
+            "command WC. Argument: " +
+            arg);
     }
 };
 

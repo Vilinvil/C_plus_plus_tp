@@ -45,9 +45,7 @@ class IOperation : public IHandleEndOfInput,
 
 class OperationWithNext : public ISetNextOperation {
   public:
-    void SetNextOperation(IOperation *operation) override {
-        next_ = std::unique_ptr<IOperation>(operation);
-    }
+    void SetNextOperation(IOperation *operation) override;
 
   protected:
     IOperation *GetRefNext() { return next_.get(); };
@@ -115,15 +113,7 @@ class CatOperation : public IOperation, public BaseOperation {
 // WCOperation can throw std::runtime_error
 class WCOperation : public IOperation, public BaseOperation {
   public:
-    WCOperation(const std::string &arg, std::ostream &out)
-        : BaseOperation(arg, out) {
-        if (arg != "-c") {
-            throw std::runtime_error(
-                "in WCOperation constructor: not supported argument with "
-                "command WC. Argument: " +
-                arg);
-        }
-    };
+    WCOperation(const std::string &arg, std::ostream &out);
 
     void HandleEndOfInput() override;
 

@@ -9,7 +9,7 @@ class Command {
     Command(const std::string &operation, const std::string &arg)
         : operation_(operation), arg_(arg){};
 
-    std::string str() { return ("Operation: " + operation_ + "arg: " + arg_); };
+    std::string str();
 
     std::string operation_;
     std::string arg_;
