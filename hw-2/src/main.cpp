@@ -9,7 +9,7 @@
 // PiplineHandler() can throw std::runtime_error
 void PiplineHandler(std::string &pipe, std::ostream &out) {
     try {
-        IOperation *head;
+        IOperationUP head;
         IOperation *tail;
 
         std::vector<Command> command_v = ParsePipe(pipe);
@@ -29,8 +29,8 @@ void PiplineHandler(std::string &pipe, std::ostream &out) {
             }
 
             if (flagFirst) {
-                tail = tmp;
-                head = tail;
+                head = std::unique_ptr<IOperation>(tmp);
+                tail = head.get();
                 flagFirst = false;
                 continue;
             }

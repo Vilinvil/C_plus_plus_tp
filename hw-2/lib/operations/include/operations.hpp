@@ -21,21 +21,27 @@ using IOperationUP = std::unique_ptr<IOperation>;
 class IHandleEndOfInput {
   public:
     virtual void HandleEndOfInput() = 0;
+    virtual ~IHandleEndOfInput() = default;
 };
 
 class IProcessLine {
   public:
     virtual void ProcessLine(const std::string &str) = 0;
+    virtual ~IProcessLine() = default;
 };
 
 class ISetNextOperation {
   public:
     virtual void SetNextOperation(IOperation *operation) = 0;
+    virtual ~ISetNextOperation() = default;
 };
 
 class IOperation : public IHandleEndOfInput,
                    public ISetNextOperation,
-                   public IProcessLine {};
+                   public IProcessLine {
+  public:
+    virtual ~IOperation() = default;
+};
 
 class OperationWithNext : public ISetNextOperation {
   public:
@@ -71,9 +77,7 @@ class BaseOperation : public OperationWithNext,
                       public OperationWithOut {
   protected:
     BaseOperation(const std::string &arg, std::ostream &out)
-        : OperationWithOut(out) {
-        arg_ = arg;
-    };
+        : OperationWithOut(out), OperationWithArg(arg){};
 };
 
 class EchoOperation : public IOperation, public BaseOperation {
@@ -88,6 +92,8 @@ class EchoOperation : public IOperation, public BaseOperation {
     };
 
     void ProcessLine(const std::string &str) override;
+
+    ~EchoOperation() override = default;
 };
 
 class CatOperation : public IOperation, public BaseOperation {
@@ -102,6 +108,8 @@ class CatOperation : public IOperation, public BaseOperation {
     };
 
     void ProcessLine(const std::string &str) override;
+
+    ~CatOperation() override = default;
 };
 
 // WCOperation can throw std::runtime_error
@@ -124,6 +132,8 @@ class WCOperation : public IOperation, public BaseOperation {
     };
 
     void ProcessLine(const std::string &str) override;
+
+    ~WCOperation() override = default;
 
   protected:
     ::CounterBite counter_;
