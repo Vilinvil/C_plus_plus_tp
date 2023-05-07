@@ -7,21 +7,12 @@ std::string Command::str() {
 namespace {
 constexpr std::string_view SEP = " | ";
 
-void deleteQuotes(std::string &str) {
-    str.erase(0, 1);
-    str.erase(str.length() - 1, 1);
-}
-
 // deleteToLastEcho doing nothing if not found echo command
 void deleteToLastEcho(std::string &str) {
     if (size_t idxLastEcho = str.rfind("echo ");
         idxLastEcho != std::string::npos) {
         str.erase(0, idxLastEcho);
     }
-}
-
-bool isHaveQuotes(const std::string &str) {
-    return str[0] == str[str.length() - 1] && str[0] == '\'';
 }
 
 // ParseCommand can throw std::runtime_error and std::out_of_range
@@ -44,14 +35,6 @@ Command ParseCommand(const std::string &command) {
 // ParsePipe() can throw std::runtime_error
 std::vector<Command> ParsePipe(std::string &pipe) {
     try {
-        if (!::isHaveQuotes(pipe)) {
-            throw std::runtime_error(
-                "in PiplineHandler: pipe haven`t '' in start and end. For "
-                "help use ./hw2 --help");
-        }
-
-        ::deleteQuotes(pipe);
-
         // It`s needed for optimization(we don't want handle commands because
         // last echo erase them)
         ::deleteToLastEcho(pipe);
