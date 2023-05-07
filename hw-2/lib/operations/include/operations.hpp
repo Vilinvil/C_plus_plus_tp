@@ -38,10 +38,7 @@ class ISetNextOperation {
 
 class IOperation : public IHandleEndOfInput,
                    public ISetNextOperation,
-                   public IProcessLine {
-  public:
-    virtual ~IOperation() = default;
-};
+                   public IProcessLine {};
 
 class OperationWithNext : public ISetNextOperation {
   public:
