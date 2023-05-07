@@ -8,7 +8,7 @@
 #include "pipe_parser.hpp"
 
 // PiplineHandler() can throw std::runtime_error
-void PiplineHandler(std::string &pipe, std::ostream &out) {
+static void PiplineHandler(std::string &pipe, std::ostream &out) {
     try {
         IOperationUP head;
         IOperation *tail;

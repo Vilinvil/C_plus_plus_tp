@@ -15,15 +15,5 @@ class Command {
     std::string arg_;
 };
 
-static bool isHaveQuotes(const std::string &str);
-
-static void deleteQuotes(std::string &str);
-
-// deleteToLastEcho doing nothing if not found echo command
-static void deleteToLastEcho(std::string &str);
-
-// ParseCommand can throw std::runtime_error and std::out_of_range
-static Command ParseCommand(const std::string &command);
-
 // ParsePipe() can throw std::runtime_error
 std::vector<Command> ParsePipe(std::string &pipe);
