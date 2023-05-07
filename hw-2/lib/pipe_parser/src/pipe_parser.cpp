@@ -5,6 +5,8 @@ std::string Command::str() {
 };
 
 namespace {
+constexpr std::string_view SEP = " | ";
+
 void deleteQuotes(std::string &str) {
     str.erase(0, 1);
     str.erase(str.length() - 1, 1);
@@ -51,9 +53,9 @@ std::vector<Command> ParsePipe(std::string &pipe) {
         ::deleteToLastEcho(pipe);
 
         std::vector<Command> res;
-        for (size_t idx_sep_command = pipe.find(" | ");
+        for (size_t idx_sep_command = pipe.find(::SEP);
              idx_sep_command != std::string::npos;
-             idx_sep_command = pipe.find(" | ")) {
+             idx_sep_command = pipe.find(::SEP)) {
             std::string command_str = pipe.substr(0, idx_sep_command);
 
             res.push_back(::ParseCommand(command_str));

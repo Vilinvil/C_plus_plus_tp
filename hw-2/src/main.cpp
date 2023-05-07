@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
     std::string pipe = argv[1];
 
     if (pipe == "--help") {
-        std::cout << mes_help;
+        std::cout << MES_HELP;
         return 0;
     }
 
