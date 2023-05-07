@@ -9,10 +9,10 @@ void EchoOperation::ProcessLine(const std::string &str){
 };
 
 void EchoOperation::HandleEndOfInput() {
-    IOperation *next = this->GetRefNext();
+    IOperation *next = next_.get();
     if (next) {
-        (*next).ProcessLine(arg_);
-        (*next).HandleEndOfInput();
+        next->ProcessLine(arg_);
+        next->HandleEndOfInput();
         return;
     }
 
@@ -20,7 +20,7 @@ void EchoOperation::HandleEndOfInput() {
 };
 
 void CatOperation::ProcessLine(const std::string &str) {
-    IOperation *next = this->GetRefNext();
+    IOperation *next = next_.get();
     if (next) {
         next->ProcessLine(str);
         return;
@@ -32,7 +32,7 @@ void CatOperation::ProcessLine(const std::string &str) {
 // CatOperation::HandleEndOfInput() can throw std::runtime_error
 void CatOperation::HandleEndOfInput() {
     try {
-        IOperation *next = this->GetRefNext();
+        IOperation *next = next_.get();
         std::ifstream ifs(arg_);
         std::string line;
         if (!ifs.is_open()) {
@@ -41,9 +41,9 @@ void CatOperation::HandleEndOfInput() {
                                      arg_);
         }
 
-        while (ifs.is_open() && getline(ifs, line)) {
+        while (getline(ifs, line)) {
             if (next) {
-                (*next).ProcessLine(line + "\n");
+                next->ProcessLine(line + "\n");
                 continue;
             }
 
@@ -51,7 +51,7 @@ void CatOperation::HandleEndOfInput() {
         }
 
         if (next) {
-            (*next).HandleEndOfInput();
+            next->HandleEndOfInput();
         }
 
     } catch (std::exception &e) {
@@ -76,10 +76,10 @@ void WCOperation::ProcessLine(const std::string &str) {
 }
 
 void WCOperation::HandleEndOfInput() {
-    IOperation *next = this->GetRefNext();
+    IOperation *next = next_.get();
     if (next) {
-        (*next).ProcessLine(std::to_string(counter_.totalBite_));
-        (*next).HandleEndOfInput();
+        next->ProcessLine(std::to_string(counter_.totalBite_));
+        next->HandleEndOfInput();
         return;
     }
 

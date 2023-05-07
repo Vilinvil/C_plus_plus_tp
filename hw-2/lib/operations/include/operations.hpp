@@ -48,9 +48,6 @@ class OperationWithNext : public ISetNextOperation {
     void SetNextOperation(IOperation *operation) override;
 
   protected:
-    IOperation *GetRefNext() { return next_.get(); };
-
-  private:
     IOperationUP next_;
 };
 

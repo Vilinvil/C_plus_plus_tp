@@ -4,11 +4,7 @@
 #include <string>
 #include <vector>
 
-class Command {
-  public:
-    Command(const std::string &operation, const std::string &arg)
-        : operation_(operation), arg_(arg){};
-
+struct Command {
     std::string str();
 
     std::string operation_;

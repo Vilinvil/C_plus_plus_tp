@@ -33,7 +33,11 @@ Command ParseCommand(const std::string &command) {
             command + " For help use ./hw2 --help");
     }
 
-    return Command(command.substr(0, idxGap), command.substr(idxGap + 1));
+    auto res = Command();
+    res.operation_ = command.substr(0, idxGap);
+    res.arg_ = command.substr(idxGap + 1);
+
+    return res;
 }
 }   // namespace
 
