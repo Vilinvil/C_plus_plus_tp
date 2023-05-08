@@ -9,36 +9,36 @@ void EchoOperation::ProcessLine(const std::string &str){
 };
 
 void EchoOperation::HandleEndOfInput() {
-    IOperation *next = next_.get();
+    IOperation *next = oper_next_.next_.get();
     if (next) {
-        next->ProcessLine(arg_);
+        next->ProcessLine(oper_arg_.arg_);
         next->HandleEndOfInput();
         return;
     }
 
-    out_ << arg_;
+    oper_out_.out_ << oper_arg_.arg_;
 };
 
 void CatOperation::ProcessLine(const std::string &str) {
-    IOperation *next = next_.get();
+    IOperation *next = oper_next_.next_.get();
     if (next) {
         next->ProcessLine(str);
         return;
     }
 
-    out_ << str;
+    oper_out_.out_ << str;
 };
 
 // CatOperation::HandleEndOfInput() can throw std::runtime_error
 void CatOperation::HandleEndOfInput() {
     try {
-        IOperation *next = next_.get();
-        std::ifstream ifs(arg_);
+        IOperation *next = oper_next_.next_.get();
+        std::ifstream ifs(oper_arg_.arg_);
         std::string line;
         if (!ifs.is_open()) {
             throw std::runtime_error("in CatOperation::HandleEndOfInput(): ifs "
                                      "can`t open file with path: " +
-                                     arg_);
+                                     oper_arg_.arg_);
         }
 
         while (getline(ifs, line)) {
@@ -47,7 +47,7 @@ void CatOperation::HandleEndOfInput() {
                 continue;
             }
 
-            out_ << line << std::endl;
+            oper_out_.out_ << line << std::endl;
         }
 
         if (next) {
@@ -76,12 +76,12 @@ void WCOperation::ProcessLine(const std::string &str) {
 }
 
 void WCOperation::HandleEndOfInput() {
-    IOperation *next = next_.get();
+    IOperation *next = oper_next_.next_.get();
     if (next) {
         next->ProcessLine(std::to_string(counter_.totalBite_));
         next->HandleEndOfInput();
         return;
     }
 
-    out_ << counter_.totalBite_;
+    oper_out_.out_ << counter_.totalBite_;
 }

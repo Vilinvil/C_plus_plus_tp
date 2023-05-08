@@ -44,13 +44,12 @@ class OperationWithNext : public ISetNextOperation {
   public:
     void SetNextOperation(IOperation *operation) override;
 
-  protected:
     IOperationUP next_;
 };
 
 class OperationWithArg {
-  protected:
-    OperationWithArg(){};
+  public:
+    // OperationWithArg(){};
     OperationWithArg(const std::string &arg) : arg_(arg){};
 
     std::string arg_;
@@ -60,16 +59,17 @@ class OperationWithOut {
   public:
     OperationWithOut(std::ostream &out) : out_(out){};
 
-  protected:
     std::ostream &out_;
 };
 
-class BaseOperation : public OperationWithNext,
-                      public OperationWithArg,
-                      public OperationWithOut {
+class BaseOperation {
   protected:
     BaseOperation(const std::string &arg, std::ostream &out)
-        : OperationWithOut(out), OperationWithArg(arg){};
+        : oper_out_(OperationWithOut(out)), oper_arg_(OperationWithArg(arg)){};
+
+    OperationWithNext oper_next_;
+    OperationWithArg oper_arg_;
+    OperationWithOut oper_out_;
 };
 
 class EchoOperation : public IOperation, public BaseOperation {
@@ -80,7 +80,7 @@ class EchoOperation : public IOperation, public BaseOperation {
     void HandleEndOfInput() override;
 
     void SetNextOperation(IOperation *operation) override {
-        OperationWithNext::SetNextOperation(operation);
+        oper_next_.SetNextOperation(operation);
     };
 
     void ProcessLine(const std::string &str) override;
@@ -96,7 +96,7 @@ class CatOperation : public IOperation, public BaseOperation {
     void HandleEndOfInput() override;
 
     void SetNextOperation(IOperation *operation) override {
-        OperationWithNext::SetNextOperation(operation);
+        oper_next_.SetNextOperation(operation);
     };
 
     void ProcessLine(const std::string &str) override;
@@ -112,7 +112,7 @@ class WCOperation : public IOperation, public BaseOperation {
     void HandleEndOfInput() override;
 
     void SetNextOperation(IOperation *operation) override {
-        OperationWithNext::SetNextOperation(operation);
+        oper_next_.SetNextOperation(operation);
     };
 
     void ProcessLine(const std::string &str) override;
