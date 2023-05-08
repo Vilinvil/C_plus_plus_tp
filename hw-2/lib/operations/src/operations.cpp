@@ -1,7 +1,7 @@
 #include "operations.hpp"
 
-void OperationWithNext::SetNextOperation(IOperation *operation) {
-    next_ = std::unique_ptr<IOperation>(operation);
+void OperationWithNext::SetNextOperation(IOperationUP operation) {
+    next_ = std::move(operation);
 }
 
 void EchoOperation::ProcessLine(const std::string &str){

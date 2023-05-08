@@ -16,13 +16,13 @@ void piplineHandler(std::string &pipe, std::ostream &out) {
 
     bool flagFirst = true;
     for (auto it = command_v.begin(); it != command_v.end(); it++) {
-        IOperation *tmp;
+        IOperationUP tmp;
         if (it->operation_ == "echo") {
-            tmp = new EchoOperation(it->arg_, out);
+            tmp = std::make_unique<EchoOperation>(it->arg_, out);
         } else if (it->operation_ == "cat") {
-            tmp = new CatOperation(it->arg_, out);
+            tmp = std::make_unique<CatOperation>(it->arg_, out);
         } else if (it->operation_ == "wc") {
-            tmp = new WCOperation(it->arg_, out);
+            tmp = std::make_unique<WCOperation>(it->arg_, out);
         } else {
             throw std::runtime_error(
                 " For help use ./hw2 --help. Not supported command: " +
@@ -30,14 +30,14 @@ void piplineHandler(std::string &pipe, std::ostream &out) {
         }
 
         if (flagFirst) {
-            head = std::unique_ptr<IOperation>(tmp);
+            head = std::move(tmp);
             tail = head.get();
             flagFirst = false;
             continue;
         }
 
-        tail->SetNextOperation(tmp);
-        tail = tmp;
+        tail->SetNextOperation(std::move(tmp));
+        tail = tmp.get();
     }
     head->HandleEndOfInput();
 }

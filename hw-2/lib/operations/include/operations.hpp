@@ -32,7 +32,7 @@ class IProcessLine {
 
 class ISetNextOperation {
   public:
-    virtual void SetNextOperation(IOperation *operation) = 0;
+    virtual void SetNextOperation(IOperationUP operation) = 0;
     virtual ~ISetNextOperation() = default;
 };
 
@@ -42,14 +42,13 @@ class IOperation : public IHandleEndOfInput,
 
 class OperationWithNext : public ISetNextOperation {
   public:
-    void SetNextOperation(IOperation *operation) override;
+    void SetNextOperation(IOperationUP operation) override;
 
     IOperationUP next_;
 };
 
 class OperationWithArg {
   public:
-    // OperationWithArg(){};
     OperationWithArg(const std::string &arg) : arg_(arg){};
 
     std::string arg_;
@@ -79,8 +78,8 @@ class EchoOperation : public IOperation, public BaseOperation {
 
     void HandleEndOfInput() override;
 
-    void SetNextOperation(IOperation *operation) override {
-        oper_next_.SetNextOperation(operation);
+    void SetNextOperation(IOperationUP operation) override {
+        oper_next_.SetNextOperation(std::move(operation));
     };
 
     void ProcessLine(const std::string &str) override;
@@ -95,8 +94,8 @@ class CatOperation : public IOperation, public BaseOperation {
 
     void HandleEndOfInput() override;
 
-    void SetNextOperation(IOperation *operation) override {
-        oper_next_.SetNextOperation(operation);
+    void SetNextOperation(IOperationUP operation) override {
+        oper_next_.SetNextOperation(std::move(operation));
     };
 
     void ProcessLine(const std::string &str) override;
@@ -111,8 +110,8 @@ class WCOperation : public IOperation, public BaseOperation {
 
     void HandleEndOfInput() override;
 
-    void SetNextOperation(IOperation *operation) override {
-        oper_next_.SetNextOperation(operation);
+    void SetNextOperation(IOperationUP operation) override {
+        oper_next_.SetNextOperation(std::move(operation));
     };
 
     void ProcessLine(const std::string &str) override;
