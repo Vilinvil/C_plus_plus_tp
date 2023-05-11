@@ -49,7 +49,7 @@ class OperationWithNext : public ISetNextOperation {
 
 class OperationWithArg {
   public:
-    OperationWithArg(const std::string &arg) : arg_(arg){};
+    explicit OperationWithArg(const std::string &arg) : arg_(arg){};
 
     std::string arg_;
 };
